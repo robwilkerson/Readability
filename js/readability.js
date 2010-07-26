@@ -101,6 +101,7 @@ var readability = {
     dbg( '' );
     dbg( 'Retrieving article content' );
     var articleContent = readability.grabArticle();
+		dbg( 'Setting "' + articleContent.innerHTML + '" as the article content' );
     
     dbg( '' );
     var articleFooter  = readability.getArticleFooter();
@@ -178,15 +179,15 @@ var readability = {
      */
     if((window.location.protocol + "//" + window.location.host + "/") == window.location.href)
     {
-        articleContent.style.display = "none";
-        var rootWarning = document.createElement('p');
-            rootWarning.id = "readability-warning";
-            rootWarning.innerHTML = "<em>Readability</em> was intended for use on individual articles and not home pages. " +
-                "If you'd like to try rendering this page anyway, <a onClick='javascript:document.getElementById(\"readability-warning\").style.display=\"none\";document.getElementById(\"readability-content\").style.display=\"block\";'>click here</a> to continue.";
+			articleContent.style.display = "none";
+			var rootWarning = document.createElement('p');
+					rootWarning.id = "readability-warning";
+					rootWarning.innerHTML = "<em>Readability</em> was intended for use on individual articles and not home pages. " +
+							"If you'd like to try rendering this page anyway, <a onClick='javascript:document.getElementById(\"readability-warning\").style.display=\"none\";document.getElementById(\"readability-content\").style.display=\"block\";'>click here</a> to continue.";
 
-        innerDiv.insertBefore( rootWarning, articleContent );
+			innerDiv.insertBefore( rootWarning, articleContent );
     }
-
+		
     if(readability.convertLinksToFootnotes && !window.location.href.match(/wikipedia\.org/g)) {
         readability.addFootnotes(articleContent);
     }
@@ -374,11 +375,11 @@ var readability = {
         var frameSize = frames[frameIndex].offsetWidth + frames[frameIndex].offsetHeight;
         var canAccessFrame = false;
         try {
-            frames[frameIndex].contentWindow.document.body;
-            canAccessFrame = true;
+					frames[frameIndex].contentWindow.document.body;
+					canAccessFrame = true;
         }
         catch(eFrames) {
-            dbg(eFrames);
+          dbg(eFrames);
         }
 
         if(frameSize > biggestFrameSize) {
@@ -645,7 +646,7 @@ var readability = {
      
       node.readability.contentScore += readability.getClassWeight(node);
       
-      dbg( '----------> Readability score: ' + node.readability.contentScore );
+      // dbg( '----------> Readability score: ' + node.readability.contentScore );
     },
     
     /***
@@ -677,28 +678,29 @@ var readability = {
         if (stripUnlikelyCandidates) {
           var unlikelyMatchString = node.className + node.id;
           
-          dbg( '------> Testing "' + unlikelyMatchString + '" as an unlikely article component' );
+          // dbg( '------> Testing "' + unlikelyMatchString + '" as an unlikely article component' );
           
           if ( unlikelyMatchString.search(readability.regexps.unlikelyCandidatesRe) !== -1 &&
               unlikelyMatchString.search(readability.regexps.okMaybeItsACandidateRe) == -1 &&
               node.tagName !== "BODY"
           ) {
-            dbg( '------> Removing unlikely candidate - ' + unlikelyMatchString );
+            dbg( '------> Removing unlikely candidate (' + unlikelyMatchString + ') from parentNode' );
+						dbg( node.parentNode );
             node.parentNode.removeChild(node);
-            nodeIndex--;
+						nodeIndex--;
             continue;
           }               
         }
 
         if (node.tagName === "P" || node.tagName === "TD" || node.tagName === "PRE") {
-          dbg( '------> Adding a ' + node.nodeName + ' tag to be scored' );
+          // dbg( '------> Adding a ' + node.nodeName + ' tag to be scored' );
           nodesToScore[nodesToScore.length] = node;
         }
 
         /* Turn all divs that don't have children block level elements into p's */
         if (node.tagName === "DIV") {
           if (node.innerHTML.search(readability.regexps.divToPElementsRe) === -1) {
-            dbg("------> Altering div to p");
+            // dbg("------> Altering div to p");
             
             var newNode = document.createElement('p');
             try {
@@ -706,11 +708,11 @@ var readability = {
               node.parentNode.replaceChild(newNode, node);
               nodeIndex--;
               
-              dbg( '--------> Adding converted node to scoreable array' );
+              // dbg( '--------> Adding converted node to scoreable array' );
               nodesToScore[nodesToScore.length] = node;
             }
             catch(e) {
-              dbg("--------> Could not alter div to p, probably an IE restriction, reverting back to div.: " + e);
+              // dbg("--------> Could not alter div to p, probably an IE restriction, reverting back to div.: " + e);
             }
           }
           else
@@ -725,6 +727,7 @@ var readability = {
                 p.style.display = 'inline';
                 p.className = 'readability-styled';
                 childNode.parentNode.replaceChild(p, childNode);
+								dbg( p );
               }
             }
           }
@@ -740,7 +743,10 @@ var readability = {
        * A score is determined by things like number of commas, class names, etc. Maybe eventually link density.
       **/
       dbg( '' );
-      dbg( '----> Scoring nodes for "how content-y they look"')
+			dbg( '----> Preparing to score the following nodes:' );
+      dbg( nodesToScore );
+      dbg( '----> Scoring nodes for "how content-y they look"');
+      
       var candidates = [];
       for (var pt=0; pt < nodesToScore.length; pt++) {
         var parentNode      = nodesToScore[pt].parentNode;
