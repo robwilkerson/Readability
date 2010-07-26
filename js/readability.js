@@ -30,7 +30,7 @@ var readability = {
                                    **/
   biggestFrame:            false,
   bodyCache:               null,   /* Cache the body HTML in case we need to re-use it later */
-  flags:                   0x1 | 0x2 | 0x4,   /* Start with both flags set. */
+  flags:                   0x1 | 0x2 | 0x4,   /* Start with all flags set. */
   
   /* constants */
   FLAG_STRIP_UNLIKELYS: 0x1,
