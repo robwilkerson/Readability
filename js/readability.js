@@ -1,5 +1,11 @@
 var dbg = (typeof console !== 'undefined') ? function(s) {
-    console.log("Readability: " + s);
+    if( typeof( s ) == 'string' ) {
+			console.log("Readability: " + s);
+		}
+		else {
+			console.log( s );
+		}
+		
 } : function() {};
 
 /*
@@ -86,8 +92,17 @@ var readability = {
         var overlay        = document.createElement("DIV");
         var innerDiv       = document.createElement("DIV");
         var articleTools   = readability.getArticleTools();
+				
+				dbg( '' );
+				dbg( 'Retrieving article title' );				
         var articleTitle   = readability.getArticleTitle();
+				dbg( 'Setting "' + articleTitle.innerText + '" as the article title' );
+				
+				dbg( '' );
+				dbg( 'Retrieving article content' );
         var articleContent = readability.grabArticle();
+				
+				dbg( '' );
         var articleFooter  = readability.getArticleFooter();
 
         /**
@@ -242,35 +257,48 @@ var readability = {
             }
         }
         catch(e) {}
+				
+				dbg( '--> curTitle  = "' + curTitle + '"' );
+				dbg( '--> origTitle = "' + origTitle + '"' );
         
         if(curTitle.match(/ [\|\-] /))
         {
+						dbg( '--> There is a "|" or "-" in title' );
             curTitle = origTitle.replace(/(.*)[\|\-] .*/gi,'$1');
             
             if(curTitle.split(' ').length < 3) {
                 curTitle = origTitle.replace(/[^\|\-]*[\|\-](.*)/gi,'$1');
             }
+						
+						dbg( '----> curTitle = "' + curTitle + '"' );
         }
         else if(curTitle.indexOf(': ') !== -1)
         {
+						dbg( '--> Have a ": " in title' );
             curTitle = origTitle.replace(/.*:(.*)/gi, '$1');
 
             if(curTitle.split(' ').length < 3) {
                 curTitle = origTitle.replace(/[^:]*[:](.*)/gi,'$1');
             }
+						
+						dbg( '----> curTitle = "' + curTitle + '"' );
         }
         else if(curTitle.length > 150 || curTitle.length < 15)
         {
+						dbg( '--> Length is either crazy long or crazy short. Using the first h1 tag.' );
             var hOnes = document.getElementsByTagName('h1');
             if(hOnes.length == 1)
             {
                 curTitle = readability.getInnerText(hOnes[0]);
             }
+						
+						dbg( '----> curTitle = "' + curTitle + '"' );
         }
 
         curTitle = curTitle.replace( readability.regexps.trimRe, "" );
 
         if(curTitle.split(' ').length <= 4) {
+						dbg( '--> Using the longer title in lieu of "' + curTitle + '"'	);
             curTitle = origTitle;
         }
         
@@ -616,6 +644,8 @@ var readability = {
         }
        
         node.readability.contentScore += readability.getClassWeight(node);
+				
+				dbg( '----------> Readability score: ' + node.readability.contentScore );
     },
     
     /***
@@ -625,6 +655,8 @@ var readability = {
      * @return Element
     **/
     grabArticle: function () {
+			dbg( '--> Extracting article' );
+			
         var stripUnlikelyCandidates = readability.flagIsActive(readability.FLAG_STRIP_UNLIKELYS);
 
         /**
@@ -638,16 +670,22 @@ var readability = {
         var nodesToScore = [];
         for(var nodeIndex = 0; (node = document.getElementsByTagName('*')[nodeIndex]); nodeIndex++)
         {
+						dbg( '----> Processing a ' + node.nodeName );
+						dbg( node );
+						
             /* Remove unlikely candidates */
             if (stripUnlikelyCandidates) {
                 var unlikelyMatchString = node.className + node.id;
+								
+								dbg( '------> Testing "' + unlikelyMatchString + '" as an unlikely article component' );
+								
                 if (
 					unlikelyMatchString.search(readability.regexps.unlikelyCandidatesRe) !== -1 &&
                    	unlikelyMatchString.search(readability.regexps.okMaybeItsACandidateRe) == -1 &&
                    	node.tagName !== "BODY"
 				)
                 {
-                    dbg("Removing unlikely candidate - " + unlikelyMatchString);
+                    dbg( '------> Removing unlikely candidate - ' + unlikelyMatchString );
                     node.parentNode.removeChild(node);
                     nodeIndex--;
                     continue;
@@ -655,23 +693,25 @@ var readability = {
             }
 
             if (node.tagName === "P" || node.tagName === "TD" || node.tagName === "PRE") {
+								dbg( '------> Adding a ' + node.nodeName + ' tag to be scored' );
                 nodesToScore[nodesToScore.length] = node;
             }
 
             /* Turn all divs that don't have children block level elements into p's */
             if (node.tagName === "DIV") {
                 if (node.innerHTML.search(readability.regexps.divToPElementsRe) === -1) {
-                    dbg("Altering div to p");
+                    dbg("------> Altering div to p");
                     var newNode = document.createElement('p');
                     try {
                         newNode.innerHTML = node.innerHTML;             
                         node.parentNode.replaceChild(newNode, node);
                         nodeIndex--;
-
+												
+												dbg( '--------> Adding converted node to scoreable array' );
                         nodesToScore[nodesToScore.length] = node;
                     }
                     catch(e) {
-                        dbg("Could not alter div to p, probably an IE restriction, reverting back to div.: " + e);
+                        dbg("--------> Could not alter div to p, probably an IE restriction, reverting back to div.: " + e);
                     }
                 }
                 else
@@ -680,7 +720,7 @@ var readability = {
                     for(var i = 0, il = node.childNodes.length; i < il; i++) {
                         var childNode = node.childNodes[i];
                         if(childNode.nodeType == 3) { // Node.TEXT_NODE
-                            dbg("replacing text node with a p tag with the same content.");
+                            dbg("------> replacing text node with a p tag with the same content.");
                             var p = document.createElement('p');
                             p.innerHTML = childNode.nodeValue;
                             p.style.display = 'inline';
@@ -689,7 +729,9 @@ var readability = {
                         }
                     }
                 }
-            } 
+            }
+						
+						dbg( '<---- Processing complete (' + node.nodeName + ')' );
         }
 
         /**
@@ -698,23 +740,32 @@ var readability = {
          *
          * A score is determined by things like number of commas, class names, etc. Maybe eventually link density.
         **/
+				dbg( '' );
+				dbg( '----> Scoring nodes for "how content-y they look"')
         var candidates = [];
         for (var pt=0; pt < nodesToScore.length; pt++) {
             var parentNode      = nodesToScore[pt].parentNode;
             var grandParentNode = parentNode ? parentNode.parentNode : null;
             var innerText       = readability.getInnerText(nodesToScore[pt]);
+						
+						dbg( '------> Inspecting node' );
+						dbg( nodesToScore[pt] );
 
             if(!parentNode || typeof(parentNode.tagName) == 'undefined') {
+								dbg( '<------ Parent node is useless to us. Skipping.' );
                 continue;
             }
 
             /* If this paragraph is less than 25 characters, don't even count it. */
             if(innerText.length < 25) {
+							dbg( '<------ Minimal text in node. Skipping.' );
                 continue; }
 
             /* Initialize readability data for the parent. */
             if(typeof parentNode.readability == 'undefined') 
             {
+								dbg( '--------> Scoring parent node (' + parentNode.nodeName + '):' );
+								dbg( parentNode );
                 readability.initializeNode(parentNode);
                 candidates.push(parentNode);
             }
@@ -722,6 +773,8 @@ var readability = {
             /* Initialize readability data for the grandparent. */
             if(grandParentNode && typeof(grandParentNode.readability) == 'undefined' && typeof(grandParentNode.tagName) != 'undefined')
             {
+								dbg( '--------> Scoring grandparent node (' + grandParentNode.nodeName + '):' );
+								dbg( grandParentNode );
                 readability.initializeNode(grandParentNode);
                 candidates.push(grandParentNode);
             }
@@ -743,13 +796,22 @@ var readability = {
             if(grandParentNode) {
                 grandParentNode.readability.contentScore += contentScore/2;             
             }
+						
+						dbg( '<------ Finished inspecting node' );
         }
-
-        /**
+				
+				dbg( '<---- Finished scoring "content-y-ness"' );
+        
+				/**
          * After we've calculated scores, loop through all of the possible candidate nodes we found
          * and find the one with the highest score.
         **/
         var topCandidate = null;
+				
+				dbg( '----> Candidates' );
+				dbg( candidates );
+				
+				dbg( '----> Searching for the top article candidate' );
         for(var c=0, cl=candidates.length; c < cl; c++)
         {
             /**
@@ -758,11 +820,12 @@ var readability = {
             **/
             candidates[c].readability.contentScore = candidates[c].readability.contentScore * (1-readability.getLinkDensity(candidates[c]));
 
-            dbg('Candidate: ' + candidates[c] + " (" + candidates[c].className + ":" + candidates[c].id + ") with score " + candidates[c].readability.contentScore);
+            dbg('------> Candidate ' + candidates[c] + " (" + candidates[c].className + ":" + candidates[c].id + ") has score " + candidates[c].readability.contentScore);
 
             if(!topCandidate || candidates[c].readability.contentScore > topCandidate.readability.contentScore) {
                 topCandidate = candidates[c]; }
         }
+				dbg( '<---- Complete' );
 
         /**
          * If we still have no top candidate, just use the body as a last resort.
@@ -770,11 +833,13 @@ var readability = {
          **/
         if (topCandidate === null || topCandidate.tagName == "BODY")
         {
+						dbg( '----> No top candidate' );
             topCandidate = document.createElement("DIV");
             topCandidate.innerHTML = document.body.innerHTML;
             document.body.innerHTML = "";
             document.body.appendChild(topCandidate);
             readability.initializeNode(topCandidate);
+						dbg( '<---- Using the body element in lieu of anything else' );
         }
 
         /**
@@ -867,6 +932,8 @@ var readability = {
         **/
         readability.prepArticle(articleContent);
         
+				dbg( '<-- Article extraction complete' );
+				
         return articleContent;
     },
     
