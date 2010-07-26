@@ -668,7 +668,7 @@ var readability = {
         **/
         var node = null;
         var nodesToScore = [];
-        for(var nodeIndex = 0; (node = document.getElementsByTagName('*')[nodeIndex]); nodeIndex++)
+        for(var nodeIndex = 0; (node = document.body.getElementsByTagName('*')[nodeIndex]); nodeIndex++)
         {
 						dbg( '----> Processing a ' + node.nodeName );
 						dbg( node );
