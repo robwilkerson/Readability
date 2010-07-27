@@ -113,7 +113,7 @@ var readability = {
     **/
     if(readability.getInnerText(articleContent, false).length < 250)
     {
-      if (readability.flagIsActive(readability.FLAG_STRIP_UNLIKELYS)) {
+			if (readability.flagIsActive(readability.FLAG_STRIP_UNLIKELYS)) {
         readability.removeFlag(readability.FLAG_STRIP_UNLIKELYS);
         document.body.innerHTML = readability.bodyCache;
         return readability.init();
@@ -181,12 +181,28 @@ var readability = {
     {
 			articleContent.style.display = "none";
 			var rootWarning = document.createElement('p');
-					rootWarning.id = "readability-warning";
+					rootWarning.id = 'readability-warning';
 					rootWarning.innerHTML = "<em>Readability</em> was intended for use on individual articles and not home pages. " +
-							"If you'd like to try rendering this page anyway, <a onClick='javascript:document.getElementById(\"readability-warning\").style.display=\"none\";document.getElementById(\"readability-content\").style.display=\"block\";'>click here</a> to continue.";
+						"If you'd like to try rendering this page anyway, <a onClick='javascript:document.getElementById(\"readability-warning\").style.display=\"none\";document.getElementById(\"readability-content\").style.display=\"block\";' style=\"cursor: pointer;\">click here</a> to continue.";
 
 			innerDiv.insertBefore( rootWarning, articleContent );
     }
+		
+		/**
+		 * If no content was found on the initial pass (i.e. at least one flag is unset), then let's
+		 * assume that instinct was correct. We'll give the user the ability to display whatever _was_
+		 * unearthed, but let's acknowledge the lack of identified content first.
+		 */
+		else if( !readability.flagIsActive( readability.FLAG_STRIP_UNLIKELYS ) ) {
+			articleContent.style.display = 'none';
+			var rootWarning              = document.createElement( 'p' );
+					rootWarning.id           = 'readability-warning';
+			    rootWarning.innerHTML    =
+						'At first glance, there doesn\'t appear to be any content on this page that would truly benefit from <em>Readability</em>.</p>' +
+						'If you\'d like to render this page anyway, <a onclick="javascript:document.getElementById(\'readability-warning\').style.display=\'none\';document.getElementById(\'readability-content\').style.display=\'block\';" style="cursor:pointer">click here</a> to continue.';
+						
+			innerDiv.insertBefore( rootWarning, articleContent );
+		}
 		
     if(readability.convertLinksToFootnotes && !window.location.href.match(/wikipedia\.org/g)) {
         readability.addFootnotes(articleContent);
