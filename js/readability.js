@@ -42,7 +42,7 @@ var readability = {
    * Defined up here so we don't instantiate them repeatedly in loops.
    **/
   regexps: {
-    unlikelyCandidatesRe:   /combx|comment|disqus|foot|header|menu|rss|shoutbox|sidebar|sponsor|ad-break|agegate/i,
+    unlikelyCandidatesRe:   /combx|comment|disqus|foot|header|menu|rss|shoutbox|sidebar|sponsor|ad-break|agegate|hidden|invisible/i,
     okMaybeItsACandidateRe: /and|article|body|column|main/i,
     positiveRe:             /article|body|content|entry|hentry|page|pagination|post|text|blog|story/i,
     negativeRe:             /combx|comment|contact|foot|footer|footnote|masthead|media|meta|promo|related|scroll|shoutbox|sponsor|tags|widget/i,
@@ -696,6 +696,18 @@ var readability = {
           
           // dbg( '------> Testing "' + unlikelyMatchString + '" as an unlikely article component' );
           
+					/**
+					 * Yeah, if it's not displayed on the page we're reading, then it's "readability"
+					 * should probably be considered nil.
+					 */
+          if( node.style.display == 'none' || node.style.visibility == 'hidden' ) {
+            dbg( '------> Removing unlikely candidate (' + node.nodeName + ') from parentNode (hidden content)' );
+						// dbg( node.parentNode );
+            node.parentNode.removeChild( node );
+						nodeIndex--;
+            continue;
+					}
+					
           if ( unlikelyMatchString.search(readability.regexps.unlikelyCandidatesRe) !== -1 &&
               unlikelyMatchString.search(readability.regexps.okMaybeItsACandidateRe) == -1 &&
               node.tagName !== "BODY"
