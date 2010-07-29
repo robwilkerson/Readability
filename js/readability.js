@@ -683,9 +683,10 @@ var readability = {
        * Note: Assignment from index for performance. See http://www.peachpit.com/articles/article.aspx?p=31567&seqNum=5
        * TODO: Shouldn't this be a reverse traversal?
       **/
+      var nodes = document.body.getElementsByTagName( '*' );
       var node = null;
       var nodesToScore = [];
-      for(var nodeIndex = 0; (node = document.body.getElementsByTagName('*')[nodeIndex]); nodeIndex++)
+      for(var nodeIndex = 0; (node = nodes[nodeIndex]); nodeIndex++)
       { 
         dbg( '----> Processing a ' + node.nodeName );
         dbg( node );
